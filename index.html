@@ -136,12 +136,32 @@
                 divElement.appendChild(overlayElement);
 
                 // Download button
-                const downloadBtn = document.createElement('a');
-                downloadBtn.href = image;
-                downloadBtn.download = '';
-                downloadBtn.innerText = 'Download';
-                downloadBtn.classList.add('download-button', 'hidden', 'group-hover:block');
-                overlayElement.appendChild(downloadBtn);
+const downloadBtn = document.createElement('a');
+downloadBtn.href = image;
+downloadBtn.download = 'image'; // Set a meaningful name for the downloaded file
+downloadBtn.innerText = 'Download';
+downloadBtn.classList.add('download-button', 'hidden', 'group-hover:block');
+
+// Add event listener to the download button
+downloadBtn.addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default behavior (i.e., opening the image in the browser)
+    // Trigger download programmatically
+    fetch(image)
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = downloadBtn.download;
+            document.body.appendChild(a); // Append anchor element to body
+            a.click(); // Programmatically trigger the click event
+            a.remove(); // Remove the anchor element
+            window.URL.revokeObjectURL(url); // Release the object URL
+        });
+});
+
+overlayElement.appendChild(downloadBtn);
+
 
                 // Append image container to the grid
                 imageGrid.appendChild(divElement);
