@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .heading {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .heading h1 {
+            font-size: 3rem;
+            color: #333;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px 20px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-bar:focus {
+            border-color: #4CAF50;
+        }
+
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .image-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-container:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .download-button {
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="heading">
+            <h1>Image Gallery</h1>
+            <input type="text" class="search-bar" placeholder="Search images...">
+        </div>
+        
+        <div id="imageGrid" class="grid"></div>
+    </div>
+
+    <!-- JavaScript to fetch and display images -->
+    <script>
+        // Function to fetch images from the 'images' folder
+        async function fetchImages() {
+            const response = await fetch('./img/');
+            const data = await response.text();
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(data, 'text/html');
+            const images = Array.from(htmlDoc.querySelectorAll('a'))
+                .filter(link => link.href.match(/\.(jpe?g|png|gif|bmp)$/i))
+                .map(link => link.href);
+            return images;
+        }
+
+        // Function to render images in the grid
+        async function renderImages() {
+            const images = await fetchImages();
+            const imageGrid = document.getElementById('imageGrid');
+            images.forEach(image => {
+                const imgElement = document.createElement('img');
+                imgElement.src = image;
+                imgElement.classList.add('object-cover', 'w-full', 'h-full');
+                
+                // Image container
+                const divElement = document.createElement('div');
+                divElement.classList.add('image-container', 'group', 'shadow-lg');
+                divElement.appendChild(imgElement);
+                
+                // Image overlay for hover effect
+                const overlayElement = document.createElement('div');
+                overlayElement.classList.add('image-overlay', 'group-hover:opacity-100');
+                divElement.appendChild(overlayElement);
+
+                // Download button
+                const downloadBtn = document.createElement('a');
+                downloadBtn.href = image;
+                downloadBtn.download = '';
+                downloadBtn.innerText = 'Download';
+                downloadBtn.classList.add('download-button', 'hidden', 'group-hover:block');
+                overlayElement.appendChild(downloadBtn);
+
+                // Append image container to the grid
+                imageGrid.appendChild(divElement);
+            });
+        }
+
+        // Call renderImages function when the page loads
+        window.onload = renderImages;
+    </script>
+</body>
+</html>
