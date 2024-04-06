@@ -92,12 +92,30 @@
         .download-button:hover {
             background-color: #48bb78; /* Changed hover background color to lighter green */
         }
+        .preview-button {
+            color: white;
+            margin-left: 10px;
+            background-color: #677968;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1.4rem; /* Increased font size */
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Added transition effect */
+        }
 
+        .preview-button:hover {
+            background-color: #86ad96; /* Changed hover background color to lighter green */
+        }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 20px;
         }
+
 
         @media (max-width: 768px) {
             .grid {
@@ -123,72 +141,118 @@
         <div id="imageGrid" class="grid"></div>
     </div>
 
-    <!-- JavaScript to fetch and display images -->
-    <script>
-        // Function to fetch images from the 'images' folder
-        async function fetchImages() {
-            const response = await fetch('https://api.github.com/repos/ramachandra-2k96/image/contents/img');
-            const data = await response.json();
-            const images = data
-                .filter(item => item.type === 'file' && item.name.match(/\.(jpe?g|png|gif|bmp)$/i))
-                .map(item => item.download_url);
-            return images;
-        }
+   <!-- JavaScript to fetch and display images -->
+<script>
+    // Function to fetch images from the 'images' folder
+    async function fetchImages() {
+        const response = await fetch('https://api.github.com/repos/ramachandra-2k96/image/contents/img');
+        const data = await response.json();
+        const images = data
+            .filter(item => item.type === 'file' && item.name.match(/\.(jpe?g|png|gif|bmp)$/i))
+            .map(item => item.download_url);
+        return images;
+    }
 
-        // Function to render images in the grid
-        async function renderImages() {
-            const images = await fetchImages();
-            const imageGrid = document.getElementById('imageGrid');
-            images.forEach(image => {
-                const imgElement = document.createElement('img');
-                imgElement.src = image;
-                imgElement.classList.add('object-cover', 'w-full', 'h-full');
-                
-                // Image container
-                const divElement = document.createElement('div');
-                divElement.classList.add('image-container', 'group', 'shadow-lg');
-                divElement.appendChild(imgElement);
-                
-                // Image overlay for hover effect
-                const overlayElement = document.createElement('div');
-                overlayElement.classList.add('image-overlay', 'group-hover:opacity-100');
-                divElement.appendChild(overlayElement);
+    // Function to render images in the grid
+    async function renderImages() {
+        const images = await fetchImages();
+        const imageGrid = document.getElementById('imageGrid');
+        images.forEach(image => {
+            const imgElement = document.createElement('img');
+            imgElement.src = image;
+            imgElement.classList.add('object-cover', 'w-full', 'h-full');
 
-                // Download button
-const downloadBtn = document.createElement('a');
-downloadBtn.href = image;
-downloadBtn.download = 'image'; // Set a meaningful name for the downloaded file
-downloadBtn.innerText = 'Download';
-downloadBtn.classList.add('download-button', 'hidden', 'group-hover:block');
+            // Image container
+            const divElement = document.createElement('div');
+            divElement.classList.add('image-container', 'group', 'shadow-lg');
+            divElement.appendChild(imgElement);
 
-// Add event listener to the download button
-downloadBtn.addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent default behavior (i.e., opening the image in the browser)
-    // Trigger download programmatically
-    fetch(image)
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = downloadBtn.download;
-            document.body.appendChild(a); // Append anchor element to body
-            a.click(); // Programmatically trigger the click event
-            a.remove(); // Remove the anchor element
-            window.URL.revokeObjectURL(url); // Release the object URL
-        });
-});
+            // Image overlay for hover effect
+            const overlayElement = document.createElement('div');
+            overlayElement.classList.add('image-overlay', 'group-hover:opacity-100');
+            divElement.appendChild(overlayElement);
 
-overlayElement.appendChild(downloadBtn);
+            // Download button
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = image;
+            downloadBtn.download = 'image'; // Set a meaningful name for the downloaded file
+            downloadBtn.innerText = 'Download';
+            downloadBtn.classList.add('download-button', 'hidden', 'group-hover:block');
 
-
-                // Append image container to the grid
-                imageGrid.appendChild(divElement);
+            // Add event listener to the download button
+            downloadBtn.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent default behavior (i.e., opening the image in the browser)
+                // Trigger download programmatically
+                fetch(image)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = downloadBtn.download;
+                        document.body.appendChild(a); // Append anchor element to body
+                        a.click(); // Programmatically trigger the click event
+                        a.remove(); // Remove the anchor element
+                        window.URL.revokeObjectURL(url); // Release the object URL
+                    });
             });
+
+            overlayElement.appendChild(downloadBtn);
+
+            // Preview button
+            const previewBtn = document.createElement('button');
+            previewBtn.innerText = 'Show Preview';
+            previewBtn.classList.add('preview-button');
+            previewBtn.addEventListener('click', function () {
+                showPreview(image);
+            });
+            overlayElement.appendChild(previewBtn);
+
+            // Append image container to the grid
+            imageGrid.appendChild(divElement);
+        });
+    }
+
+    // Function to show image preview in fullscreen mode
+    function showPreview(imageUrl) {
+        const imgElement = document.createElement('img');
+        imgElement.src = imageUrl;
+        imgElement.classList.add('fullscreen-image');
+
+        const fullscreenDiv = document.createElement('div');
+        fullscreenDiv.classList.add('fullscreen-preview');
+        fullscreenDiv.appendChild(imgElement);
+        document.body.appendChild(fullscreenDiv);
+
+        // Enter fullscreen mode
+        if (fullscreenDiv.requestFullscreen) {
+            fullscreenDiv.requestFullscreen();
+        } else if (fullscreenDiv.mozRequestFullScreen) { /* Firefox */
+            fullscreenDiv.mozRequestFullScreen();
+        } else if (fullscreenDiv.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+            fullscreenDiv.webkitRequestFullscreen();
+        } else if (fullscreenDiv.msRequestFullscreen) { /* IE/Edge */
+            fullscreenDiv.msRequestFullscreen();
         }
 
-        // Call renderImages function when the page loads
-        window.onload = renderImages;
-    </script>
+        // Exit fullscreen mode when clicking outside the image
+        fullscreenDiv.addEventListener('click', function () {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { /* Firefox */
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE/Edge */
+                document.msExitFullscreen();
+            }
+            document.body.removeChild(fullscreenDiv);
+        });
+    }
+
+    // Call renderImages function when the page loads
+    window.onload = renderImages;
+</script>
+
 </body>
 </html>
